@@ -1,0 +1,2 @@
+module GroupUserRequestsHelper
+end

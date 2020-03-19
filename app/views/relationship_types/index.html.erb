@@ -1,0 +1,25 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Relationship Types</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @relationship_types.each do |relationship_type| %>
+      <tr>
+        <td><%= link_to 'Show', relationship_type %></td>
+        <td><%= link_to 'Edit', edit_relationship_type_path(relationship_type) %></td>
+        <td><%= link_to 'Destroy', relationship_type, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Relationship Type', new_relationship_type_path %>
