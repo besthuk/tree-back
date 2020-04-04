@@ -72,7 +72,6 @@ module Api
       end
 
       def change_login
-        @token_id = 1
         @user = get_user(params[:id])
         if @token_id.nil? == false && @token_id == @user.id
           if params['type']
@@ -129,7 +128,6 @@ module Api
       end
 
       def get_inbox_request
-        @token_id = 1
         rel = RelationshipRequest.where('user2_id=?', @token_id)
         inbox = []
         rel.each do |user|

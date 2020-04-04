@@ -179,7 +179,6 @@ module Api
       end
 
       def get_group_inbox_request
-        @token_id =4
         requests = GroupUserRequest.where('user_id = ? AND type_request = 0', @token_id)
         inbox = []
         if requests
