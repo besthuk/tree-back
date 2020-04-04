@@ -6,15 +6,11 @@ INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VA
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (5, 'grandchild', 6, 'внучка', 'внук', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (4, 'sibs', 4, 'сестра', 'брат', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (9, 'uncleaunt', 10, 'тетя', 'дядя', null);
-INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (10, 'Nephew ', 9, 'Племяница', 'племяник', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (11, 'cousin', 11, 'сестра', 'брат', 'двоюродные');
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (12, 'second cousin', 12, 'сестра', 'брат', 'троюродные');
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (13, 'first cousin once removed', 14, 'тетя', 'дядя', 'двоюродные');
-INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (14, 'first cousin once removed', 13, 'Племяница', 'племяник', 'двоюродные');
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (15, 'great-grandchild', 16, 'правнучка', 'правнук', null);
-INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (16, 'great-grandparent', 15, 'прабабушка', 'прадедшука', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (17, 'first cousin twice removed', 18, 'правнучка', 'правнук', 'двоюродные');
-INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (18, 'first cousin twice removed', 17, 'прабабушка', 'прадедшука', 'двоюродные');
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (101, 'matchmaker', 101, 'сваха', 'сват', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (102, 'son-in-law', 103, 'зять', 'зять', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (103, 'parent-in-law', 102, 'тёща', 'тесть', null);
@@ -22,6 +18,10 @@ INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VA
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (105, 'parent-in-law', 104, 'свекровь', 'свёкр', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (106, 'husband''s sibs', 107, 'золовка', 'деверь', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (107, 'sibs''s wife', 106, 'невестка', 'невестка', null);
-INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (108, 'wife''s sibs', 109, 'шурин', 'своячница', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (109, 'sibs''s hasband', 108, 'зять', 'зять', null);
 INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (1, 'spouse', 1, 'супруга', 'супруг', null);
+INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (10, 'Nephew ', 9, 'племянница', 'племянник', null);
+INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (108, 'wife''s sibs', 109, 'шурин', 'свояченица', null);
+INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (18, 'first cousin twice removed', 17, 'прабабушка', 'прадедушка', 'двоюродные');
+INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (14, 'first cousin once removed', 13, 'племянница', 'племянник', 'двоюродные');
+INSERT INTO public.relationship_types (id, name, ratio, female, male, prefix) VALUES (16, 'great-grandparent', 15, 'прабабушка', 'прадедушка', null);
