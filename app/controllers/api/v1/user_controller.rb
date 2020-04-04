@@ -26,16 +26,9 @@ module Api
             study = params[:study]
             study.each do |study|
               if study[:name]
-                if study[:id]
-                  if model
-                    model = Study.find_by_id(study[:id])
-                  end
-                  model.update(study_params(study))
-                else
                   model = Study.new(study_params(study))
                   model.user = @user
                   model.save
-                end
               end
             end
           end
@@ -44,16 +37,9 @@ module Api
             study = params[:work]
             study.each do |work|
               if work[:name]
-                if work[:id]
-                  model = Work.find_by_id(work[:id])
-                  if model
-                    model.update(work_params(work))
-                  end
-                else
                   model = Work.new(work_params(work))
                   model.user = @user
                   model.save
-                end
               end
             end
           end
