@@ -10,29 +10,32 @@ module Api
       login = params[:login]
       if login
         @user = User.find_by_tel(login)
-      end
-      if @user
-        if @user.time_code.nil? || @user.time_code < Time.now
-          @user.generate_code(0)
-          answer(true, "challenge_required")
-        end
-      else
-        if login.to_i.is_a? Integer
-          @pi = PersonalInfo.new
-          if @pi.save
-            @user = User.new(:tel => login, :is_user => 1, :personal_info => @pi)
-            if @user.save
-              @user.generate_code(0)
-              answer(true, "challenge_required")
-            else
-              render json: answer(false, @user.errors), status: :unprocessable_entity
-            end
-          else
-            render json: answer(false, @pi.errors), status: :unprocessable_entity
+
+        if @user
+          if @user.time_code.nil? || @user.time_code < Time.now
+            @user.generate_code(0)
+            answer(true, "challenge_required")
           end
         else
-          answer(false, login.to_i.is_a?)
+          if login.to_i.is_a? Integer
+            @pi = PersonalInfo.new
+            if @pi.save
+              @user = User.new(:tel => login, :is_user => 1, :personal_info => @pi)
+              if @user.save
+                @user.generate_code(0)
+                answer(true, "challenge_required")
+              else
+                render json: answer(false, @user.errors), status: :unprocessable_entity
+              end
+            else
+              render json: answer(false, @pi.errors), status: :unprocessable_entity
+            end
+          else
+            answer(false, login.to_i.is_a?)
+          end
         end
+      else
+        answer(false, 'Login not found')
       end
     end
 
@@ -42,8 +45,12 @@ module Api
       end
       if @user
         if @user.time_code >= Time.now
-          if params[:code] == @user.code
-            answer(true, {"token" =>  @user.generate_token, "user_id" => @user.id})
+          if params[:code].to_i.is_a? Integer
+            if params[:code].to_i == @user.code
+              answer(true, {"token" =>  @user.generate_token, "user_id" => @user.id})
+            else
+              answer(false, "Invalide code")
+            end
           else
             answer(false, "Invalide code")
           end
@@ -60,14 +67,42 @@ module Api
         @user = User.find_by_id(params[:id])
         @pi   = @user.personal_info
         if @token_id.nil? == false && (@token_id == @user.id)
-         if params[:personal] && params[:personal][:firstname] && params[:personal][:secondname] && params[:personal][:gender] &&
-             params[:user] && params[:user][:email]
-           if @user.update(user_params) && @pi.update(pi_params)
-             @user.update(:is_reg => 1)
-             answer(true, "Data save")
-           else
-             render json: @user.errors, status: :unprocessable_entity
-           end
+         if   params[:personal] &&
+              params[:personal][:firstname] && (params[:personal][:firstname].is_a? String) &&
+              params[:personal][:secondname] && (params[:personal][:secondname].is_a? String) &&
+              params[:personal][:gender] && (params[:personal][:gender].to_i.is_a? Integer) &&
+              params[:user] &&
+              params[:user][:email] && (params[:user][:email].is_a? String)
+
+                # study save
+                if params[:study]
+                  study = params[:study]
+                  study.each do |study|
+                    if study[:name]
+                      model = Study.new(study_params(study))
+                      model.user = @user
+                      model.save
+                    end
+                  end
+                end
+                # work save
+                if params[:work]
+                  study = params[:work]
+                  study.each do |work|
+                    if work[:name]
+                      model = Work.new(work_params(work))
+                      model.user = @user
+                      model.save
+                    end
+                  end
+                end
+
+                if @user.update(user_params) && @pi.update(pi_params)
+                  @user.update(:is_reg => 1)
+                  answer(true, "Data save")
+                else
+                  render json: @user.errors, status: :unprocessable_entity
+                end
          else
            answer(false, "Not all required fields are filled")
          end
@@ -104,6 +139,13 @@ module Api
     end
     def pi_params
       params.require(:personal).permit(:firstname, :secondname, :lastname, :gender, :dob, :country, :city, :address, :hobbies)
+    end
+
+    def study_params(study)
+      study.permit(:name)
+    end
+    def work_params(study)
+      study.permit(:name)
     end
 
     def authenticate

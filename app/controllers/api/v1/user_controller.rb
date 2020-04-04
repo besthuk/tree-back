@@ -18,6 +18,8 @@ module Api
         # TODO test
         if @token_id.nil? == false && (@token_id == @user.id || @token_id == @user.owner_id)
           @pi   = @user.personal_info
+          @user.studies.destroy_all
+          @user.works.destroy_all
 
           # study save
           if params[:study]
@@ -58,7 +60,7 @@ module Api
 
           # personal info save
           if params[:user] || params[:personal]
-            if @user.update(user_params) || @pi.update(pi_params)
+            if @user.update(user_params) && @pi.update(pi_params)
               answer(true, "Data save")
             else
               render json: @user.errors, status: :unprocessable_entity
@@ -77,16 +79,24 @@ module Api
           if params['type']
             if params['type'] == 'email'
               if params['old_email'] == @user.email && params['new_email']
-                @user.generate_code(1, params['new_email'])
-                answer(true, "challenge_login")
+                if User.find_by_email(params['new_email'])
+                  answer(false, 'Email already use')
+                else
+                  @user.generate_code(1, params['new_email'])
+                  answer(true, "challenge_login")
+                end
               else
                 wrong_params(['email'])
               end
             else
               if params['type'] == 'phone'
                 if params['old_phone'].to_i == @user.tel && params['new_phone']
-                  @user.generate_code(2, params['new_phone'])
-                  answer(true, "challenge_login")
+                  if User.find_by_tel(params['new_phone'])
+                    answer(false, 'Number already use')
+                  else
+                    @user.generate_code(2, params['new_phone'])
+                    answer(true, "challenge_login")
+                  end
                 else
                   wrong_params(['phone'])
                 end

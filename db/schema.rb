@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_16_225259) do
+ActiveRecord::Schema.define(version: 2020_04_04_181315) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,6 +90,9 @@ ActiveRecord::Schema.define(version: 2020_03_16_225259) do
   create_table "relationship_types", force: :cascade do |t|
     t.text "name"
     t.integer "ratio"
+    t.text "female"
+    t.text "male"
+    t.text "prefix"
   end
 
   create_table "relationships", id: false, force: :cascade do |t|
