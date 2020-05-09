@@ -324,9 +324,6 @@ module Api
       def user_params
         params.require(:user).permit(:email)
       end
-      def pi_params
-        params.require(:personal).permit(:firstname, :secondname, :lastname, :gender, :dob, :country, :city, :address, :hobbies)
-      end
       def study_params(study)
         study.permit(:name)
       end

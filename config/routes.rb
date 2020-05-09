@@ -14,6 +14,7 @@ Rails.application.routes.draw do
       post 'login'
       post 'challenge_required'
       post 'register'
+      post 'upload_photo'
       resources :user do
         get 'user', on: :member
         get 'get_parents', on: :member

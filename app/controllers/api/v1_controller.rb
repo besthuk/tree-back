@@ -1,10 +1,10 @@
 module Api
   class V1Controller < ApplicationController
     # TODO test
-    # before_action :authenticate, except: [:login, :challenge_required]
+    before_action :authenticate, except: [:login, :challenge_required]
     include ActionController::HttpAuthentication::Token::ControllerMethods
 
-    skip_before_action :verify_authenticity_token, :only => [:login, :challenge_required, :register]
+    skip_before_action :verify_authenticity_token, :only => [:login, :challenge_required, :register, :upload_photo]
 
     def login
       login = params[:login]
@@ -38,7 +38,6 @@ module Api
         answer(false, 'Login not found')
       end
     end
-
     def challenge_required
       if params[:login]
         @user = User.find_by_tel(params[:login])
@@ -59,6 +58,28 @@ module Api
         end
       else
         answer(false, "User not exist")
+      end
+    end
+
+    def upload_photo
+      if params[:photo]
+        @user = User.find_by_id(@token_id)
+        if @user
+          @pi   = @user.personal_info
+          if @pi
+            if @pi.update_attributes(photo: params[:photo])
+              answer(true, @pi.photo)
+            else
+              render json: @pi.errors, status: :unprocessable_entity
+            end
+          else
+            not_found
+          end
+        else
+          not_found
+        end
+      else
+        wrong_params
       end
     end
 
@@ -143,7 +164,7 @@ module Api
       params.require(:user).permit(:email)
     end
     def pi_params
-      params.require(:personal).permit(:firstname, :secondname, :lastname, :gender, :dob, :country, :city, :address, :hobbies)
+      params.require(:personal).permit(:firstname, :secondname, :lastname, :gender, :dob, :country, :city, :address, :hobbies, :photo)
     end
 
     def study_params(study)
@@ -168,6 +189,10 @@ module Api
           :methods => [:users, :feed],
           :except => [:created_at, :updated_at, :id]
       )
+    end
+
+    def not_found
+      answer(false, "User not found")
     end
   end
 end

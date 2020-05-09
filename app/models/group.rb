@@ -1,5 +1,6 @@
 class Group < ApplicationRecord
   attr_accessor :users, :inbox, :outbox, :feed
+  mount_uploader :photo, ImageUploader
 
   def get_users
     gu = GroupUser.where('group_id = ?', self.id)
