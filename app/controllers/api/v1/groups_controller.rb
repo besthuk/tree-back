@@ -13,7 +13,7 @@ module Api
           if @group.save
             gu = GroupUser.new(:group_id => @group.id, :user_id => @token_id)
             gu.save
-            answer(true, "create")
+            answer(true, @group)
           else
             answer(false, @group.errors)
           end
@@ -211,12 +211,6 @@ module Api
       end
       def group_params
         params.require(:group).permit(:name, :description)
-      end
-      def render_group(group)
-        group.as_json(
-            :methods => [:users, :feed],
-            :except => [:created_at, :updated_at, :id]
-        )
       end
     end
   end

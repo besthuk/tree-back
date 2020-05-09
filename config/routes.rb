@@ -23,10 +23,11 @@ Rails.application.routes.draw do
         get 'profile', to: 'user#show'
         collection do
           get 'search'
-          get 'add_request'
-          get 'answer_request'
+          post 'add_request'
+          post 'answer_request'
           get 'get_inbox_request'
           get 'get_outbox_request'
+          get 'get_groups'
         end
       end
       resource :groups do

@@ -1,7 +1,7 @@
 module Api
   class V1Controller < ApplicationController
     # TODO test
-    before_action :authenticate, except: [:login, :challenge_required]
+    # before_action :authenticate, except: [:login, :challenge_required]
     include ActionController::HttpAuthentication::Token::ControllerMethods
 
     skip_before_action :verify_authenticity_token, :only => [:login, :challenge_required, :register]
@@ -65,49 +65,54 @@ module Api
     def register
       if params[:id]
         @user = User.find_by_id(params[:id])
-        @pi   = @user.personal_info
-        if @token_id.nil? == false && (@token_id == @user.id)
-         if   params[:personal] &&
-              params[:personal][:firstname] && (params[:personal][:firstname].is_a? String) &&
-              params[:personal][:secondname] && (params[:personal][:secondname].is_a? String) &&
-              params[:personal][:gender] && (params[:personal][:gender].to_i.is_a? Integer) &&
-              params[:user] &&
-              params[:user][:email] && (params[:user][:email].is_a? String)
+        if @user
+          @pi   = @user.personal_info
+          @token_id = 1
+          if @token_id.nil? == false && (@token_id == @user.id)
+            if  params[:personal] &&
+                params[:personal][:firstname] && (!params[:personal][:firstname].to_s.empty?) &&
+                params[:personal][:secondname] && (!params[:personal][:secondname].to_s.empty?) &&
+                params[:personal][:gender] && (params[:personal][:gender].to_i.is_a? Integer) &&
+                params[:user] &&
+                params[:user][:email] && (!params[:user][:email].to_s.empty?) && (params[:user][:email].is_a? String)
 
-                # study save
-                if params[:study]
-                  study = params[:study]
-                  study.each do |study|
-                    if study[:name]
-                      model = Study.new(study_params(study))
-                      model.user = @user
-                      model.save
+                  # study save
+                  if params[:study]
+                    study = params[:study]
+                    study.each do |study|
+                      if study[:name]
+                        model = Study.new(study_params(study))
+                        model.user = @user
+                        model.save
+                      end
                     end
                   end
-                end
-                # work save
-                if params[:work]
-                  study = params[:work]
-                  study.each do |work|
-                    if work[:name]
-                      model = Work.new(work_params(work))
-                      model.user = @user
-                      model.save
+                  # work save
+                  if params[:work]
+                    study = params[:work]
+                    study.each do |work|
+                      if work[:name]
+                        model = Work.new(work_params(work))
+                        model.user = @user
+                        model.save
+                      end
                     end
                   end
-                end
 
-                if @user.update(user_params) && @pi.update(pi_params)
-                  @user.update(:is_reg => 1)
-                  answer(true, "Data save")
-                else
-                  render json: @user.errors, status: :unprocessable_entity
-                end
-         else
-           answer(false, "Not all required fields are filled")
-         end
+                  if @user.update(user_params) && @pi.update(pi_params)
+                    @user.update(:is_reg => 1)
+                    answer(true, "Data save")
+                  else
+                    render json: @user.errors, status: :unprocessable_entity
+                  end
+            else
+              answer(false, "Not all required fields are filled")
+            end
+          else
+            answer(false, "Not you login")
+          end
         else
-          answer(false, "Not you login")
+          answer(false, "User not found")
         end
       else
         answer(false, "Not have id")
@@ -158,5 +163,11 @@ module Api
       end
     end
 
+    def render_group(group)
+      group.as_json(
+          :methods => [:users, :feed],
+          :except => [:created_at, :updated_at, :id]
+      )
+    end
   end
 end

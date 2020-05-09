@@ -1,6 +1,9 @@
 module Api
   module V1
     class UserController < V1Controller
+
+      skip_before_action :verify_authenticity_token, :only => [:add_request, :answer_request]
+
       def show
         user = get_user(params[:id])
         if user
@@ -129,7 +132,13 @@ module Api
         rel.each do |user|
             pi = User.find_by_id(user.user1_id).personal_info
             pi.user   = user.user2_id
-            inbox.push({'status' => user.status, 'type' => user.type1.name, 'user' => pi.as_json(
+            inbox.push({
+              'id' => user.id,
+              'created_at' => user.created_at,
+              'updated_at' => user.updated_at,
+              'status' => user.status,
+              'type' => user.type1.id,
+              'user' => pi.as_json(
                 :methods => [:user],
                 :except => [:created_at, :updated_at, :country, :city, :address, :hobbies]
             )})
@@ -228,14 +237,14 @@ module Api
       end
 
       def answer_request
-        if params[:id] && params[:type] && (params[:type] == '2' || params[:type] == '3')
+        if params[:id] && params[:type] && (params[:type].to_i == 2 || params[:type].to_i == 3)
           @user = get_user(@token_id)
           if @user
             @request = RelationshipRequest.where('user2_id=? AND id=?', @user.id, params[:id]).take
             if @request
               if @request.status == 0 || @request.status == 1
                 saved_rel = true
-                if params[:type] == '2'
+                if params[:type].to_i == 2
                   @relation = Relationship.new(
                       :user1_id => @request.user1_id,
                       :user2_id => @request.user2_id,
@@ -269,6 +278,23 @@ module Api
         else
           wrong_params
         end
+      end
+
+      def get_groups
+        gu = GroupUser.where('user_id=?', @token_id)
+
+        groups = []
+        gu.each do |user|
+          group = Group.find_by_id(user.group_id)
+          if params[:users] == "true"
+            group.get_users
+          end
+          if params[:feed] == "true"
+            group.get_feed
+          end
+          groups.push(render_group(group))
+        end
+        answer(true, groups)
       end
 
       private
