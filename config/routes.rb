@@ -35,9 +35,11 @@ Rails.application.routes.draw do
         collection do
           get 'get_group_inbox_request'
           get 'get_group_outbox_request'
+          post 'answer_user_request'
         end
         get ':id', to: 'groups#show'
         post ':id/edit', to: 'groups#edit'
+        post ':id/upload_photo', to: 'groups#upload_photo'
         get ':id/delete_user', to: 'groups#delete_user'
         get ':id/delete', to: 'groups#delete'
         get ':id/get_inbox_request', to: 'groups#get_inbox_request'

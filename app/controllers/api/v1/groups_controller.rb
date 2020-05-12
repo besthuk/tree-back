@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < V1Controller
-      skip_before_action :verify_authenticity_token, :only => [:create, :edit]
+      skip_before_action :verify_authenticity_token, :only => [:create, :edit, :upload_photo, :answer_user_request]
 
       def create
         @group = Group.new(group_params)
@@ -49,6 +49,25 @@ module Api
           end
         else
           not_found
+        end
+      end
+
+      def upload_photo
+        @token_id = 1
+        if params[:photo]
+          group = Group.find_by_id(params[:id])
+          if group
+            if group.owner_id == @token_id
+              group.update_attributes(photo: params[:photo])
+              answer(true, group.photo)
+            else
+              answer(false, "You not owner")
+            end
+          else
+            not_found
+          end
+        else
+          wrong_params
         end
       end
 
@@ -155,6 +174,35 @@ module Api
             end
           else
             answer(false, "You not owner")
+          end
+        else
+          wrong_params
+        end
+      end
+
+      def answer_user_request
+        if params[:group_id] && params[:status] && (params[:status].to_i == 2 || params[:status].to_i == 3)
+          group = Group.find_by_id(params[:group_id])
+          if group
+            gu = GroupUser.where('user_id = ? AND group_id = ?', @token_id, group.id).take
+            if gu
+              answer(false, "Already in group")
+            else
+              request = GroupUserRequest.where('user_id = ? AND group_id = ? AND type_request = 0', @token_id, group.id)
+              if request
+                if params[:status].to_i == 2
+                  gu = GroupUser.new(:group_id => group.id, :user_id => @token_id)
+                  gu.save
+                end
+                GroupUserRequest.where('user_id = ? AND group_id = ?', @token_id, group.id).update(:status => params[:status])
+                answer(true, "add in group")
+
+              else
+                answer(false, "Request not found")
+              end
+            end
+          else
+            not_found
           end
         else
           wrong_params

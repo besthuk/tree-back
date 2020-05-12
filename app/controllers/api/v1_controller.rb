@@ -187,7 +187,7 @@ module Api
     def render_group(group)
       group.as_json(
           :methods => [:users, :feed],
-          :except => [:created_at, :updated_at, :id]
+          :except => [:created_at, :updated_at]
       )
     end
 

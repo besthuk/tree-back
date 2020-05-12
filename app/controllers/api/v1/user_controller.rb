@@ -143,10 +143,7 @@ module Api
                 :except => [:created_at, :updated_at, :country, :city, :address, :hobbies]
             )})
         end
-        rel.each do |request|
-          request.status = 1
-          request.save
-        end
+        RelationshipRequest.where('user2_id = ? AND status = 0', @token_id).update(:status => 1)
         answer(true, inbox)
       end
 
@@ -304,10 +301,6 @@ module Api
       # Получаем пользователя из базы
       def get_user(id)
         User.includes(:studies).find_by_id(id)
-      end
-
-      def not_found
-        answer(false, "User not found")
       end
 
       def render_user(user, study = false, work = false)
