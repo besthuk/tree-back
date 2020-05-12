@@ -37,6 +37,7 @@ Rails.application.routes.draw do
           get 'get_group_outbox_request'
         end
         get ':id', to: 'groups#show'
+        post ':id/edit', to: 'groups#edit'
         get ':id/delete_user', to: 'groups#delete_user'
         get ':id/delete', to: 'groups#delete'
         get ':id/get_inbox_request', to: 'groups#get_inbox_request'

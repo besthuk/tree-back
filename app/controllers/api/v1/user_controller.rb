@@ -156,9 +156,12 @@ module Api
         rel.each do |user|
           pi = User.find_by_id(user.user2_id).personal_info
           pi.user   = user.user2_id
-          outbox.push({'status' => user.status, 'type' => user.type2.name, 'user' => pi.as_json(
-              :methods => [:user],
-              :except => [:created_at, :updated_at, :id, :country, :city, :address, :hobbies]
+          outbox.push({
+              'status' => user.status,
+              'type' => user.type2.id,
+              'user' => pi.as_json(
+                :methods => [:user],
+                :except => [:created_at, :updated_at, :id, :country, :city, :address, :hobbies]
           )})
         end
         answer(true, outbox)

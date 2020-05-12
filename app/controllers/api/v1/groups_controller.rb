@@ -1,7 +1,7 @@
 module Api
   module V1
     class GroupsController < V1Controller
-      skip_before_action :verify_authenticity_token, :only => [:create]
+      skip_before_action :verify_authenticity_token, :only => [:create, :edit]
 
       def create
         @group = Group.new(group_params)
@@ -30,6 +30,23 @@ module Api
             group.get_feed
           end
           answer(true, render_group(group))
+        else
+          not_found
+        end
+      end
+
+      def edit
+        group = Group.find_by_id(params[:id])
+        if group
+          if group.owner_id == @token_id
+            if group.update(group_params)
+              answer(true, group)
+            else
+              wrong_params
+            end
+          else
+            answer(false, "You not owner")
+          end
         else
           not_found
         end
