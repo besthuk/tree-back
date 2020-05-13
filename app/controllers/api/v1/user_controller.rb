@@ -183,7 +183,7 @@ module Api
       end
 
       def add_request
-        if params[:phone] && params[:type]
+        if params[:phone] && params[:type] && params[:type].to_i == 1 || params[:type].to_i == 2 || params[:type].to_i == 3
           type = RelationshipType.find_by_id(params[:type])
           if type
             user = User.find_by_tel(params[:phone])
@@ -191,7 +191,8 @@ module Api
               if user.id == @token_id
                 answer(false, "It's you")
               else
-                if user.check_relationship(@token_id)
+                @user = get_user(@token_id)
+                if user.check_relationship(@token_id) || @user.parent_1_id == user.id || @user.parent_2_id == user.id || @user.spouse_id == user.id
                   answer(false, "You already in relationship")
                 else
                   if user.check_relationship_request(@token_id)
@@ -245,16 +246,90 @@ module Api
               if @request.status == 0 || @request.status == 1
                 saved_rel = true
                 if params[:type].to_i == 2
-                  @relation = Relationship.new(
-                      :user1_id => @request.user1_id,
-                      :user2_id => @request.user2_id,
-                      :type1_id => @request.type1_id,
-                      :type2_id => @request.type1_id)
-                  if @relation.save
-                    saved_rel
+                  user = get_user(@request.user1_id)
+                  if
+                    user.parent_1_id != @user.id &&
+                    user.parent_2_id != @user.id &&
+                    user.spouse_id != @user.id &&
+                    @user.parent_1_id != user.id &&
+                    @user.parent_2_id != user.id &&
+                    @user.spouse_id != user.id &&
+
+                    if @request.type2_id == 1
+                      if @user.spouse_id.nil?
+                        if user.spouse_id.nil?
+                          @user.spouse_id = user.id
+                          user.spouse_id = @user.id
+                          if @user.save && user.save
+                            saved_rel
+                          else
+                            saved_rel = false
+                            answer(false, [@user.errors, user.errors])
+                          end
+                        else
+                          saved_rel = false
+                          answer(false, "You already married")
+                        end
+                      else
+                        saved_rel = false
+                        answer(false, "User already married")
+                      end
+                    elsif @request.type2_id == 2
+                      if @user.parent_1_id != @request.user1_id && @user.parent_2_id != @request.user1_id
+                        if @user.parent_1_id.nil?
+                          @user.parent_1_id = @request.user1_id
+                          if @user.save
+                            saved_rel
+                          else
+                            saved_rel = false
+                            answer(false, @user.errors)
+                          end
+                        elsif @user.parent_2_id.nil?
+                          @user.parent_2_id = @request.user1_id
+                          if @user.save
+                            saved_rel
+                          else
+                            saved_rel = false
+                            answer(false, @user.errors)
+                          end
+                        else
+                          saved_rel = false
+                          answer(false, "You have 2 parents")
+                        end
+                      else
+                        saved_rel = false
+                        answer(false, "User already you parent")
+                      end
+                    elsif @request.type2_id == 3
+                      if user.parent_1_id != @request.user2_id && user.parent_2_id != @request.user2_id
+                        if user.parent_1_id.nil?
+                          user.parent_1_id = @request.user2_id
+                          if user.save
+                            saved_rel
+                          else
+                            saved_rel = false
+                            answer(false, user.errors)
+                          end
+                        elsif user.parent_2_id.nil?
+                          user.parent_2_id = @request.user2_id
+                          if user.save
+                            saved_rel
+                          else
+                            saved_rel = false
+                            answer(false, user.errors)
+                          end
+                        else
+                          saved_rel = false
+                          answer(false, "You have 2 parents")
+                        end
+                      else
+                        saved_rel = false
+                        answer(false, "User already you children")
+                      end
+                    end
                   else
-                    !saved_rel
-                    answer(false, @relation.errors)
+                    saved_rel = false
+                    answer(false, "You already in relationship")
                   end
                 end
 

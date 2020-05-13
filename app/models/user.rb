@@ -4,6 +4,12 @@ class User < ApplicationRecord
   belongs_to :personal_info
 
   attr_accessor :relationships
+  attr_accessor :children
+  attr_accessor :parents
+  attr_accessor :spouse
+
+  belongs_to :parent_1, class_name: "User", optional: true
+  belongs_to :parent_2, class_name: "User", optional: true
 
   before_create -> {self.token = generate_token_}
 
@@ -22,6 +28,25 @@ class User < ApplicationRecord
   end
 
   def get_relatives
+    self.children = []
+    self.parents = []
+    if self.parent_1_id.nil? == false
+      self.parents.push(get_userdata(parent_1_id))
+    end
+    if self.parent_2_id.nil? == false
+      self.parents.push(get_userdata(parent_2_id))
+    end
+    if self.spouse_id.nil? == false
+      self.spouse = get_userdata(self.spouse_id)
+    end
+    children = User.where('parent_1_id=? OR parent_1_id=?', self.id, self.id)
+    if children
+      children.each do |user|
+        self.children.push(get_userdata(user.id))
+      end
+    end
+    self.relationships = {'parents' => self.parents, 'children' => self.children, 'spouse' => self.spouse}
+=begin
     rel = Relationship.where('user1_id=? OR user2_id=?', self.id, self.id)
     if rel
       self.relationships = []
@@ -34,9 +59,16 @@ class User < ApplicationRecord
       end
       self.relationships
     end
+=end
   end
 
   def check_relationship(id)
+    check = false
+    if self.parent_1_id == id || self.parent_2_id == id || self.spouse_id == id
+      check = true
+    end
+    check
+=begin
     rel = Relationship.where('user1_id=? OR user2_id=?', self.id, self.id)
     check = false
     if rel
@@ -49,6 +81,7 @@ class User < ApplicationRecord
       end
     end
     check
+=end
   end
 
   def check_relationship_request(id)

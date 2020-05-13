@@ -1,7 +1,7 @@
 module Api
   class V1Controller < ApplicationController
     # TODO test
-    before_action :authenticate, except: [:login, :challenge_required]
+    # before_action :authenticate, except: [:login, :challenge_required]
     include ActionController::HttpAuthentication::Token::ControllerMethods
 
     skip_before_action :verify_authenticity_token, :only => [:login, :challenge_required, :register, :upload_photo]

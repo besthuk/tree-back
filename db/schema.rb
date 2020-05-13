@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_04_181315) do
+ActiveRecord::Schema.define(version: 2020_05_13_193953) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -73,6 +73,13 @@ ActiveRecord::Schema.define(version: 2020_04_04_181315) do
     t.datetime "updated_at", precision: 6, default: -> { "now()" }, null: false
   end
 
+  create_table "photos", force: :cascade do |t|
+    t.string "title"
+    t.text "image_data"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "relationship_requests", force: :cascade do |t|
     t.bigint "user1_id"
     t.bigint "user2_id"
@@ -131,8 +138,14 @@ ActiveRecord::Schema.define(version: 2020_04_04_181315) do
     t.integer "is_reg", limit: 2, default: 0
     t.integer "code_type"
     t.string "new_value"
+    t.bigint "parent_1_id"
+    t.bigint "parent_2_id"
+    t.bigint "spouse_id"
     t.index ["owner_id"], name: "index_users_on_owner_id"
+    t.index ["parent_1_id"], name: "index_users_on_parent_1_id"
+    t.index ["parent_2_id"], name: "index_users_on_parent_2_id"
     t.index ["personal_info_id"], name: "index_users_on_personal_info_id"
+    t.index ["spouse_id"], name: "index_users_on_spouse_id"
   end
 
   create_table "works", force: :cascade do |t|
