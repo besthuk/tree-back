@@ -198,7 +198,7 @@ module Api
                   if user.check_relationship_request(@token_id)
                     answer(false, "You has relationship request")
                   else
-                    @request = RelationshipRequest.new(:user1_id => @token_id, :user2_id => user.id, :type1_id => params[:type], :type2_id => type.ratio)
+                    @request = RelationshipRequest.new(:user1_id => @token_id, :user2_id => user.id, :type1_id => type.ratio, :type2_id => params[:type])
                     # render json: @request
                     if @request.save
                       answer(true, "saved")
@@ -213,7 +213,7 @@ module Api
               if pi.save
                 user = User.new(:tel => params[:phone], :personal_info_id => pi.id, :owner_id => @token_id, :is_user => 0)
                 if user.save
-                  @request = RelationshipRequest.new(:user1_id => @token_id, :user2_id => user.id, :type1_id => params[:type], :type2_id => type.ratio)
+                  @request = RelationshipRequest.new(:user1_id => @token_id, :user2_id => user.id, :type1_id => type.ratio, :type2_id => params[:type])
                   # render json: @request
                   if @request.save
                     answer(true, "saved")
@@ -389,7 +389,7 @@ module Api
         user.as_json(
             :include => include,
             :methods => [:relationships],
-            :except => [:token, :time_token, :code, :time_code, :personal_info_id, :created_at, :updated_at, :id, :is_user, :is_reg, :code_type, :new_value]
+            :except => [:token, :time_token, :code, :time_code, :personal_info_id, :created_at, :updated_at, :is_user, :is_reg, :code_type, :new_value]
         )
       end
       def user_params
