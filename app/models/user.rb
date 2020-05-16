@@ -85,7 +85,7 @@ class User < ApplicationRecord
   end
 
   def check_relationship_request(id)
-    rel = RelationshipRequest.where('user1_id=? OR user2_id=?', id, self.id)
+    rel = RelationshipRequest.where('user1_id=? AND user2_id=?', id, self.id)
     (rel.empty?) ? false : true
   end
   private
