@@ -37,7 +37,7 @@ class Group < ApplicationRecord
   end
 
   def get_feed
-    messages = GroupMessage.where('group_id = ?', self.id)
+    messages = GroupMessage.where('group_id = ?', self.id).order(created_at: :desc)
     if messages
       self.feed = []
       messages.each do |row|
