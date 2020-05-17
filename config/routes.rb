@@ -50,6 +50,7 @@ Rails.application.routes.draw do
         resource :messages do
           collection do
             get 'create'
+            post 'upload_photo_messages', to: 'messages#upload_photo'
           end
           get ':id/edit', to: 'messages#edit'
           get ':id/delete', to: 'messages#delete'

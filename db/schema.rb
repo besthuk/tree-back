@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_13_193953) do
+ActiveRecord::Schema.define(version: 2020_05_17_090644) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 2020_05_13_193953) do
     t.bigint "owner_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "photo"
     t.index ["group_id"], name: "index_group_messages_on_group_id"
     t.index ["owner_id"], name: "index_group_messages_on_owner_id"
   end

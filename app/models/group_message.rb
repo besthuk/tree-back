@@ -1,5 +1,7 @@
 class GroupMessage < ApplicationRecord
   attr_accessor :owner
+  mount_uploader :photo, ImageUploader
+
   def get_owner
     self.owner = get_userdata(owner_id)
   end
