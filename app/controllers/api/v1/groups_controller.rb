@@ -53,7 +53,6 @@ module Api
       end
 
       def upload_photo
-        @token_id = 1
         if params[:photo]
           group = Group.find_by_id(params[:id])
           if group

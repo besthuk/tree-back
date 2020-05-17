@@ -88,7 +88,6 @@ module Api
         @user = User.find_by_id(params[:id])
         if @user
           @pi   = @user.personal_info
-          @token_id = 1
           if @token_id.nil? == false && (@token_id == @user.id)
             if  params[:personal] &&
                 params[:personal][:firstname] && (!params[:personal][:firstname].to_s.empty?) &&
