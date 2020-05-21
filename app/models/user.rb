@@ -30,6 +30,7 @@ class User < ApplicationRecord
   def get_relatives
     self.children = []
     self.parents = []
+    self.spouse = []
     if self.parent_1_id.nil? == false
       self.parents.push(get_userdata(parent_1_id))
     end
@@ -37,12 +38,37 @@ class User < ApplicationRecord
       self.parents.push(get_userdata(parent_2_id))
     end
     if self.spouse_id.nil? == false
-      self.spouse = get_userdata(self.spouse_id)
+      self.spouse.push(get_userdata(self.spouse_id))
     end
     children = User.where('parent_1_id=? OR parent_1_id=?', self.id, self.id)
     if children
       children.each do |user|
         self.children.push(get_userdata(user.id))
+      end
+    end
+    # не подтвержденные
+    parents_requests = RelationshipRequest.where('user1_id = ? AND type1_id = 2 AND status IN (0,1)', self.id)
+    parents_requests.each do |request|
+        if request.user1_id == self.id
+          self.parents.push(get_userdata(request.user2_id, false))
+        else
+          self.parents.push(get_userdata(request.user1_id, false))
+        end
+    end
+    children_requests = RelationshipRequest.where('user1_id = ? AND type1_id = 3 AND status IN (0,1)', self.id)
+    children_requests.each do |request|
+      if request.user1_id == self.id
+        self.children.push(get_userdata(request.user2_id, false))
+      else
+        self.children.push(get_userdata(request.user1_id, false))
+      end
+    end
+    spouse_requests = RelationshipRequest.where('user1_id = ? AND type1_id = 1 AND  status IN (0,1)', self.id)
+    spouse_requests.each do |request|
+      if request.user1_id == self.id
+        self.spouse.push(get_userdata(request.user2_id, false))
+      else
+        self.spouse.push(get_userdata(request.user1_id, false))
       end
     end
     self.relationships = {'parents' => self.parents, 'children' => self.children, 'spouse' => self.spouse}
@@ -89,7 +115,7 @@ class User < ApplicationRecord
     (rel.empty?) ? false : true
   end
   private
-  def get_userdata(id, type = false)
+  def get_userdata(id, type = true)
     pi = User.find_by_id(id).personal_info
     pi.type = type
     pi.user = id
