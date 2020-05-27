@@ -77,6 +77,7 @@ module Api
             ids.delete(@token_id)
             if ids.count > 0
               GroupUser.where('user_id IN (?) ', ids).delete_all
+              GroupUserRequest.where('user_id IN (?)', ids).update(:hide => 1)
             end
             answer(true, "deleted")
           rescue
@@ -137,7 +138,7 @@ module Api
           if gu
             answer(false, "You already in group")
           else
-            request = GroupUserRequest.where('user_id = ? AND group_id = ? AND type_request = 1', @token_id, group.id).take
+            request = GroupUserRequest.where('user_id = ? AND group_id = ? AND type_request = 1 AND hide = 0', @token_id, group.id).take
             if request
               answer(false, "You already send request")
             else
@@ -219,7 +220,7 @@ module Api
                 if gu
                   answer(false, "Already in group")
                 else
-                  request = GroupUserRequest.where('user_id = ? AND group_id = ? AND type_request = 0', params[:user_id], group.id).take
+                  request = GroupUserRequest.where('user_id = ? AND group_id = ? AND type_request = 0  AND hide = 0', params[:user_id], group.id).take
                   if request
                     answer(false, "You already send request")
                   else

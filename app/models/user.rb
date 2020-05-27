@@ -47,7 +47,7 @@ class User < ApplicationRecord
       end
     end
     # не подтвержденные
-    parents_requests = RelationshipRequest.where('user1_id = ? AND type1_id = 2 AND status IN (0,1)', self.id)
+    parents_requests = RelationshipRequest.where('(user1_id = ? AND type1_id = 2 AND status IN (0,1)) OR (user2_id = ? AND type2_id = 2 AND status IN (0,1))', self.id, self.id)
     parents_requests.each do |request|
         if request.user1_id == self.id
           self.parents.push(get_userdata(request.user2_id, false))
@@ -55,7 +55,7 @@ class User < ApplicationRecord
           self.parents.push(get_userdata(request.user1_id, false))
         end
     end
-    children_requests = RelationshipRequest.where('user1_id = ? AND type1_id = 3 AND status IN (0,1)', self.id)
+    children_requests = RelationshipRequest.where('user1_id = ? AND type1_id = 3 AND status IN (0,1) OR (user2_id = ? AND type2_id = 3 AND status IN (0,1))', self.id, self.id)
     children_requests.each do |request|
       if request.user1_id == self.id
         self.children.push(get_userdata(request.user2_id, false))

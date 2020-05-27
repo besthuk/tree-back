@@ -14,7 +14,7 @@ class Group < ApplicationRecord
   end
 
   def get_inbox
-    requests = GroupUserRequest.where('group_id = ? AND type_request = 1', self.id)
+    requests = GroupUserRequest.where('group_id = ? AND type_request = 1 AND hide = 0', self.id)
     if requests
       self.inbox = []
       requests.each do |row|
@@ -26,7 +26,7 @@ class Group < ApplicationRecord
   end
 
   def get_outbox
-    requests = GroupUserRequest.where('group_id = ? AND type_request = 0', self.id)
+    requests = GroupUserRequest.where('group_id = ? AND type_request = 0 AND hide = 0', self.id)
     if requests
       self.outbox = []
       requests.each do |row|
@@ -37,7 +37,7 @@ class Group < ApplicationRecord
   end
 
   def get_feed
-    messages = GroupMessage.where('group_id = ?', self.id).order(created_at: :desc)
+    messages = GroupMessage.where('group_id = ? AND hide = 0', self.id).order(created_at: :desc)
     if messages
       self.feed = []
       messages.each do |row|

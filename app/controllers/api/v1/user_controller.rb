@@ -18,7 +18,6 @@ module Api
 
       def edit
         @user = get_user(params[:id])
-        # TODO test
         if @token_id.nil? == false && (@token_id == @user.id || @token_id == @user.owner_id)
           @pi   = @user.personal_info
           @user.studies.destroy_all
@@ -49,6 +48,9 @@ module Api
 
           # personal info save
           if params[:user] || params[:personal]
+            if @pi.gender == 1
+              params[:personal]['maidenname'] = nil
+            end
             if @user.update(user_params) && @pi.update(pi_params)
               answer(true, "Data save")
             else
@@ -127,41 +129,68 @@ module Api
       end
 
       def get_inbox_request
-        rel = RelationshipRequest.where('user2_id=?', @token_id)
-        inbox = []
-        rel.each do |user|
-            pi = User.find_by_id(user.user1_id).personal_info
-            pi.user   = user.user2_id
-            inbox.push({
-              'id' => user.id,
-              'created_at' => user.created_at,
-              'updated_at' => user.updated_at,
-              'status' => user.status,
-              'type' => user.type1.id,
-              'user' => pi.as_json(
-                :methods => [:user],
-                :except => [:created_at, :updated_at, :country, :city, :address, :hobbies]
-            )})
+        if params[:owned_id]
+          @user = get_user(params[:owned_id])
+        else
+          @user = get_user(@token_id)
         end
-        RelationshipRequest.where('user2_id = ? AND status = 0', @token_id).update(:status => 1)
-        answer(true, inbox)
+        if @user
+          if @user.id == @token_id || @user.owner_id == @token_id
+            rel = RelationshipRequest.where('user2_id=?', @user.id)
+
+            inbox = []
+            rel.each do |user|
+                pi = User.find_by_id(user.user1_id).personal_info
+                pi.user   = user.user2_id
+                inbox.push({
+                  'id' => user.id,
+                  'created_at' => user.created_at,
+                  'updated_at' => user.updated_at,
+                  'status' => user.status,
+                  'type' => user.type1.id,
+                  'user' => pi.as_json(
+                    :methods => [:user],
+                    :except => [:created_at, :updated_at, :country, :city, :address, :hobbies]
+                )})
+            end
+            RelationshipRequest.where('user2_id = ? AND status = 0', @user.id).update(:status => 1)
+            answer(true, inbox)
+          else
+            answer(false, "You not owner user")
+          end
+        else
+          not_found
+        end
       end
 
       def get_outbox_request
-        rel = RelationshipRequest.where('user1_id=?', @token_id)
-        outbox = []
-        rel.each do |user|
-          pi = User.find_by_id(user.user2_id).personal_info
-          pi.user   = user.user2_id
-          outbox.push({
-              'status' => user.status,
-              'type' => user.type2.id,
-              'user' => pi.as_json(
-                :methods => [:user],
-                :except => [:created_at, :updated_at, :id, :country, :city, :address, :hobbies]
-          )})
+        if params[:owned_id]
+          @user = get_user(params[:owned_id])
+        else
+          @user = get_user(@token_id)
         end
-        answer(true, outbox)
+        if @user
+          if @user.id == @token_id || @user.owner_id == @token_id
+            rel = RelationshipRequest.where('user1_id=?', @user.id)
+            outbox = []
+            rel.each do |user|
+              pi = User.find_by_id(user.user2_id).personal_info
+              pi.user   = user.user2_id
+              outbox.push({
+                  'status' => user.status,
+                  'type' => user.type2.id,
+                  'user' => pi.as_json(
+                    :methods => [:user],
+                    :except => [:created_at, :updated_at, :id, :country, :city, :address, :hobbies]
+              )})
+            end
+            answer(true, outbox)
+          else
+            answer(false, "You not owner user")
+          end
+        else
+          not_found
+        end
       end
 
       def search
@@ -191,25 +220,40 @@ module Api
               if user.id == @token_id
                 answer(false, "It's you")
               else
-                @user = get_user(@token_id)
-                if user.check_relationship(@token_id) || @user.parent_1_id == user.id || @user.parent_2_id == user.id || @user.spouse_id == user.id
-                  answer(false, "You already in relationship")
+                if params[:owned_id]
+                  @owned = get_user(params[:owned_id])
                 else
-                  if user.check_relationship_request(@token_id)
-                    answer(false, "You has relationship request")
-                  else
-                    @request = RelationshipRequest.new(:user1_id => @token_id, :user2_id => user.id, :type1_id => type.ratio, :type2_id => params[:type])
-                    # render json: @request
-                    if @request.save
-                      answer(true, "saved")
+                  @owned = get_user(@token_id)
+                end
+                if @owned
+                  if @owned.owner_id == @token_id || @owned.id == @token_id
+                    if user.check_relationship(@owned.id) || @owned.parent_1_id == user.id || @owned.parent_2_id == user.id || @owned.spouse_id == user.id
+                      answer(false, "You already in relationship")
                     else
-                      render json: @request.errors
+                      if user.check_relationship_request(@owned.id)
+                        answer(false, "You has relationship request")
+                      else
+                        @request = RelationshipRequest.new(:user1_id => @owned.id, :user2_id => user.id, :type1_id => type.ratio, :type2_id => params[:type])
+                        # render json: @request
+                        if @request.save
+                          answer(true, "saved")
+                        else
+                          render json: @request.errors
+                        end
+                      end
                     end
+                  else
+                    answer(false, "You not owner user")
                   end
+                else
+                  not_found
                 end
               end
             elsif params[:personal] && params[:personal[:gender]] && pi_params
               pi = PersonalInfo.new(pi_params)
+              if pi.gender == 1
+                pi.maidenname = nil
+              end
               if pi.save
                 user = User.new(:tel => params[:phone], :personal_info_id => pi.id, :owner_id => @token_id, :is_user => 0)
                 if user.save
@@ -239,116 +283,120 @@ module Api
 
       def answer_request
         if params[:id] && params[:type] && (params[:type].to_i == 2 || params[:type].to_i == 3)
-          @user = get_user(@token_id)
-          if @user
-            @request = RelationshipRequest.where('user2_id=? AND id=?', @user.id, params[:id]).take
-            if @request
-              if @request.status == 0 || @request.status == 1
-                saved_rel = true
-                if params[:type].to_i == 2
-                  user = get_user(@request.user1_id)
-                  if
-                    user.parent_1_id != @user.id &&
-                    user.parent_2_id != @user.id &&
-                    user.spouse_id != @user.id &&
-                    @user.parent_1_id != user.id &&
-                    @user.parent_2_id != user.id &&
-                    @user.spouse_id != user.id &&
+          @request = RelationshipRequest.where('id=?', params[:id]).take
+          if @request
+            @user = get_user(@request.user2_id)
+            if @user
+              if @user.id == @token_id || @user.owner_id == @token_id
+                if @request.status == 0 || @request.status == 1
+                  saved_rel = true
+                  if params[:type].to_i == 2
+                    user = get_user(@request.user1_id)
+                    if
+                      user.parent_1_id != @user.id &&
+                      user.parent_2_id != @user.id &&
+                      user.spouse_id != @user.id &&
+                      @user.parent_1_id != user.id &&
+                      @user.parent_2_id != user.id &&
+                      @user.spouse_id != user.id &&
 
-                    if @request.type2_id == 1
-                      if @user.spouse_id.nil?
-                        if user.spouse_id.nil?
-                          @user.spouse_id = user.id
-                          user.spouse_id = @user.id
-                          if @user.save && user.save
-                            saved_rel
+                      if @request.type2_id == 1
+                        if @user.spouse_id.nil?
+                          if user.spouse_id.nil?
+                            @user.spouse_id = user.id
+                            user.spouse_id = @user.id
+                            if @user.save && user.save
+                              saved_rel
+                            else
+                              saved_rel = false
+                              answer(false, [@user.errors, user.errors])
+                            end
                           else
                             saved_rel = false
-                            answer(false, [@user.errors, user.errors])
+                            answer(false, "You already married")
                           end
                         else
                           saved_rel = false
-                          answer(false, "You already married")
+                          answer(false, "User already married")
                         end
-                      else
-                        saved_rel = false
-                        answer(false, "User already married")
-                      end
-                    elsif @request.type2_id == 2
-                      if @user.parent_1_id != @request.user1_id && @user.parent_2_id != @request.user1_id
-                        if @user.parent_1_id.nil?
-                          @user.parent_1_id = @request.user1_id
-                          if @user.save
-                            saved_rel
+                      elsif @request.type2_id == 2
+                        if @user.parent_1_id != @request.user1_id && @user.parent_2_id != @request.user1_id
+                          if @user.parent_1_id.nil?
+                            @user.parent_1_id = @request.user1_id
+                            if @user.save
+                              saved_rel
+                            else
+                              saved_rel = false
+                              answer(false, @user.errors)
+                            end
+                          elsif @user.parent_2_id.nil?
+                            @user.parent_2_id = @request.user1_id
+                            if @user.save
+                              saved_rel
+                            else
+                              saved_rel = false
+                              answer(false, @user.errors)
+                            end
                           else
                             saved_rel = false
-                            answer(false, @user.errors)
-                          end
-                        elsif @user.parent_2_id.nil?
-                          @user.parent_2_id = @request.user1_id
-                          if @user.save
-                            saved_rel
-                          else
-                            saved_rel = false
-                            answer(false, @user.errors)
+                            answer(false, "You have 2 parents")
                           end
                         else
                           saved_rel = false
-                          answer(false, "You have 2 parents")
+                          answer(false, "User already you parent")
                         end
-                      else
-                        saved_rel = false
-                        answer(false, "User already you parent")
-                      end
-                    elsif @request.type2_id == 3
-                      if user.parent_1_id != @request.user2_id && user.parent_2_id != @request.user2_id
-                        if user.parent_1_id.nil?
-                          user.parent_1_id = @request.user2_id
-                          if user.save
-                            saved_rel
+                      elsif @request.type2_id == 3
+                        if user.parent_1_id != @request.user2_id && user.parent_2_id != @request.user2_id
+                          if user.parent_1_id.nil?
+                            user.parent_1_id = @request.user2_id
+                            if user.save
+                              saved_rel
+                            else
+                              saved_rel = false
+                              answer(false, user.errors)
+                            end
+                          elsif user.parent_2_id.nil?
+                            user.parent_2_id = @request.user2_id
+                            if user.save
+                              saved_rel
+                            else
+                              saved_rel = false
+                              answer(false, user.errors)
+                            end
                           else
                             saved_rel = false
-                            answer(false, user.errors)
-                          end
-                        elsif user.parent_2_id.nil?
-                          user.parent_2_id = @request.user2_id
-                          if user.save
-                            saved_rel
-                          else
-                            saved_rel = false
-                            answer(false, user.errors)
+                            answer(false, "You have 2 parents")
                           end
                         else
                           saved_rel = false
-                          answer(false, "You have 2 parents")
+                          answer(false, "User already you children")
                         end
-                      else
-                        saved_rel = false
-                        answer(false, "User already you children")
                       end
+                    else
+                      saved_rel = false
+                      answer(false, "You already in relationship")
                     end
-                  else
-                    saved_rel = false
-                    answer(false, "You already in relationship")
                   end
-                end
 
-                if saved_rel
-                  @request.status = params[:type]
-                  if @request.save
-                    answer(true, "saved")
-                  else
-                    answer(false, @request.errors)
+                  if saved_rel
+                    @request.status = params[:type]
+                    if @request.save
+                      answer(true, "saved")
+                    else
+                      answer(false, @request.errors)
+                    end
                   end
+                else
+                  answer(false, "Relationship already done")
                 end
               else
-                answer(false, "Relationship already done")
+                  answer(false, "You not owner user")
               end
             else
-              answer(false, "Relationship not found")
+              not_found
             end
           else
-            not_found
+            answer(false, "Relationship not found")
           end
         else
           wrong_params
@@ -359,8 +407,8 @@ module Api
         gu = GroupUser.where('user_id=?', @token_id)
 
         groups = []
-        gu.each do |user|
-          group = Group.find_by_id(user.group_id)
+        gu.each do |groupUser|
+          group = Group.find_by_id(groupUser.group_id)
           if params[:users] == "true"
             group.get_users
           end

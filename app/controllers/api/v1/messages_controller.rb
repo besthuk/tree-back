@@ -81,7 +81,7 @@ module Api
           if group
             if group.check_user(@token_id)
               if message.owner_id == @token_id || group.owner_id == @token_id
-                message.delete
+                message.update(:hide => 1)
                 answer(true, "deleted")
               else
                 answer(false, "You not owner")

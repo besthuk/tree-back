@@ -118,7 +118,9 @@ module Api
                       end
                     end
                   end
-
+                  if @pi.gender == 1
+                    params[:personal]['maidenname'] = nil
+                  end
                   if @user.update(user_params) && @pi.update(pi_params)
                     @user.update(:is_reg => 1)
                     answer(true, "Data save")
@@ -163,7 +165,7 @@ module Api
       params.require(:user).permit(:email)
     end
     def pi_params
-      params.require(:personal).permit(:firstname, :secondname, :lastname, :gender, :dob, :country, :city, :address, :hobbies, :photo)
+      params.require(:personal).permit(:firstname, :secondname, :lastname, :gender, :dob, :country, :city, :address, :hobbies, :photo, :dod, :maidenname)
     end
 
     def study_params(study)
