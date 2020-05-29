@@ -249,7 +249,12 @@ module Api
                   not_found
                 end
               end
-            elsif params[:personal] && params[:personal[:gender]] && pi_params
+            elsif params[:personal] && params[:personal][:gender] && pi_params
+              if params[:owned_id]
+                @owned = get_user(params[:owned_id])
+              else
+                @owned = get_user(@token_id)
+              end
               pi = PersonalInfo.new(pi_params)
               if pi.gender == 1
                 pi.maidenname = nil
@@ -257,7 +262,7 @@ module Api
               if pi.save
                 user = User.new(:tel => params[:phone], :personal_info_id => pi.id, :owner_id => @token_id, :is_user => 0)
                 if user.save
-                  @request = RelationshipRequest.new(:user1_id => @token_id, :user2_id => user.id, :type1_id => type.ratio, :type2_id => params[:type])
+                  @request = RelationshipRequest.new(:user1_id => @owned.id, :user2_id => user.id, :type1_id => type.ratio, :type2_id => params[:type])
                   # render json: @request
                   if @request.save
                     answer(true, "saved")
