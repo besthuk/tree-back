@@ -244,7 +244,7 @@ module Api
       end
 
       def get_group_inbox_request
-        requests = GroupUserRequest.where('user_id = ? AND type_request = 0', @token_id)
+        requests = GroupUserRequest.where('user_id = ? AND type_request = 0', @token_id).order(status: :asc)
         inbox = []
         if requests
           requests.each do |row|
