@@ -55,4 +55,4 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 gem "passenger", ">= 5.0.25", require: "phusion_passenger/rack_handler"
 
-gem 'carrierwave', '~> 1.0'
+gem 'carrierwave', '~> 2.1'
